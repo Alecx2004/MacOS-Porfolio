@@ -3,8 +3,11 @@ import { Tooltip } from "react-tooltip";
 import React, { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "gsap";
+import useWindowStore from "#store/window.js";
 
 function Dock() {
+  const { openWindow, closeWindow, windows } = useWindowStore();
+
   const dockRef = useRef(null);
 
   useGSAP(() => {
@@ -24,7 +27,7 @@ function Dock() {
         const intensity = Math.exp(-(distance ** 2.5) / 20000);
 
         gsap.to(icon, {
-          sacle: 1 + 0.25 * intensity,
+          scale: 1 + 0.25 * intensity,
           y: -15 * intensity,
           duration: 0.2,
           ease: "power1.out",
@@ -52,13 +55,26 @@ function Dock() {
     dock.addEventListener("mouseleave", resetIcons);
 
     return () => {
-        dock.removeEventListener("mousemove", handleMouseMove);
-    dock.removeEventListener("mouseleave", resetIcons);
-    }
+      dock.removeEventListener("mousemove", handleMouseMove);
+      dock.removeEventListener("mouseleave", resetIcons);
+    };
   });
 
   const toggleApp = (app) => {
-    // TODO Implement Open Window Logic
+    if (!app.canOpen) return;
+
+    const window = windows[app.id];
+
+    if (!window) {
+      console.error(`Window not found for app: ${app.id}`);
+      return;
+    }
+
+    if (window.isOpen) {
+      closeWindow(app.id);
+    } else {
+      openWindow(app.id);
+    }
   };
 
   return (
